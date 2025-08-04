@@ -69,10 +69,34 @@
 from exercise_metrics.pushups import rate_form
 
 RATER_FUNCTIONS = {
-    'pushups': rate_form
+    'pushups': rate_form,
 }
 
 def rate_exercise(exercise_name, keypoints_sequence):
+    """
+    Rate exercise form based on keypoints sequence
+    
+    Args:
+        exercise_name (str): Name of the exercise
+        keypoints_sequence (list): List of keypoints for each frame
+    
+    Returns:
+        float: Form rating score (0-10)
+    """
+    exercise_name = exercise_name.lower().replace(' ', '_').replace('-', '_')
+    
     if exercise_name not in RATER_FUNCTIONS:
-        raise ValueError(f"Unsupported exercise: {exercise_name}")
-    return RATER_FUNCTIONS[exercise_name](keypoints_sequence)
+        available_exercises = list(RATER_FUNCTIONS.keys())
+        raise ValueError(f"Unsupported exercise: {exercise_name}. "
+                        f"Available exercises: {', '.join(available_exercises)}")
+    
+    # Filter out None keypoints before rating
+    valid_keypoints = [kp for kp in keypoints_sequence if kp is not None]
+    
+    if not valid_keypoints:
+        raise ValueError("No valid keypoints found in the sequence")
+    
+    rating = RATER_FUNCTIONS[exercise_name](valid_keypoints)
+    
+    # Ensure rating is within bounds
+    return max(0, min(10, rating))
